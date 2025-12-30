@@ -5,10 +5,7 @@ numpy
 PyPDF2
 python-docx
 rich
-langchain
-langchain-google-genai
-langchain-core
-fastapi
-uvicorn
-pydantic
+groq
 python-dotenv
+youtube-transcript-api
+Pillow

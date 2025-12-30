@@ -1,7 +1,22 @@
 import streamlit as st
-import requests
-import json
-import re
+import sys
+import os
+
+# Add the project root to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.services.groq_service import get_groq_service
+
+# Initialize Groq service
+@st.cache_resource
+def init_groq_service():
+    try:
+        return get_groq_service()
+    except ValueError as e:
+        st.error(f"Configuration Error: {str(e)}")
+        return None
+
+groq_service = init_groq_service()
 
 
 def plagiarism_checker_page():
@@ -35,7 +50,7 @@ def plagiarism_checker_page():
     if st.button("Check for Plagiarism"):
         if 'text_to_check' in locals() and text_to_check:
             with st.spinner("Analyzing text for potential plagiarism..."):
-                # Call the plagiarism checking API
+                # Call the plagiarism checking function directly
                 result = check_plagiarism(text_to_check)
                 
                 if "error" in result:
@@ -47,28 +62,33 @@ def plagiarism_checker_page():
             st.warning("Please enter some text or upload a file to check for plagiarism.")
 
 def check_plagiarism(text):
-    """Send text to the plagiarism checking API"""
-    try:
-        response = requests.post(
-            "https://bdstall-duplicate-content-checking-api.onrender.com/api/v1/ai/moderation/content-duplication-check",
-            json={"user_description_input": text}
-        )
-        return response.json()
-    except Exception as e:
-        return {"error": str(e)}
+    """Check plagiarism using Groq API directly"""
+    if groq_service is None:
+        return {"error": "Groq service not initialized. Please check your API key."}
+    
+    return groq_service.check_plagiarism(text)
 
 def display_plagiarism_results(result, original_text):
     """Display the plagiarism check results in a user-friendly way"""
-    is_duplicate = result.get("is_duplicate", False)
-    message = result.get("message", "")
-    url = result.get("url", "")
+    score = result.get("plagiarism_score", 0)
+    flagged = result.get("flagged_sentences", [])
+    feedback = result.get("feedback", "")
 
-    if is_duplicate:
-        st.error(f"Plagiarism Detected: {message}")
-        if url:
-            st.markdown(f"Source: [{url}]({url})")
+    st.markdown(f"### Plagiarism Score: {score}/100")
+    if score > 50:
+        st.error(f"High likelihood of plagiarism/AI generation.")
+    elif score > 20:
+        st.warning(f"Some potential issues detected.")
     else:
-        st.success("No plagiarism detected.")
+        st.success("Content appears original.")
+
+    st.markdown("### Feedback")
+    st.info(feedback)
+
+    if flagged:
+        st.markdown("### Flagged Sentences")
+        for sentence in flagged:
+            st.warning(f"- {sentence}")
 
 if __name__ == "__main__":
     plagiarism_checker_page()

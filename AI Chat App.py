@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import requests
 
-# Initialize session state for LLM selection
-if 'selected_llm' not in st.session_state:
-    st.session_state.selected_llm = 'gemini'
+# Initialize session state for model selection (for compatibility with legacy code)
+if "selected_model" not in st.session_state:
+    st.session_state.selected_model = "Llama 3.3 70B"
 
-st.markdown("""
+st.markdown(
+    """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Karla:ital,wght@0,200..800;1,200..800&family=Raleway:ital,wght@0,100..900;1,100..900&family=Sofia+Sans:ital,wght@0,1..1000;1,1..1000&display=swap');
 
@@ -32,11 +32,14 @@ h1, h2, h3, h4, h5, h6 {
     font-family: "Sofia Sans", sans-serif !important;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 # Application Title
 st.write("# RAG ToolBox")
+
 
 # Define the gradient_div function first
 def gradient_div(content, bg, page_link):
@@ -71,8 +74,10 @@ def gradient_div(content, bg, page_link):
     """
     return features_section
 
+
 # Animated instruction box
-st.markdown("""
+st.markdown(
+    """
 <div style="
     padding: 20px;
     margin: 20px 0;
@@ -137,7 +142,9 @@ st.markdown("""
         box-shadow: 0px 12px 24px rgba(0,0,0,0.15);
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Create a 2-column layout
 col1, col2 = st.columns(2)
@@ -147,52 +154,48 @@ with col2:
         gradient_div(
             "Grammar Check",
             "linear-gradient(to right, #4776E6, #8E54E9)",
-            "/Grammar_Check"
+            "/Grammar_Check",
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 # Second row
 with col1:
     st.markdown(
         gradient_div(
-            "Paraphraser",
-            "linear-gradient(to right, #11998e, #38ef7d)",
-            "/Paraphraser"
+            "Paraphraser", "linear-gradient(to right, #11998e, #38ef7d)", "/Paraphraser"
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col2:
     st.markdown(
         gradient_div(
-            "AI Chat",
-            "linear-gradient(to right, #2980B9, #6DD5FA)",
-            "/AI_Chat"
+            "AI Chat", "linear-gradient(to right, #2980B9, #6DD5FA)", "/AI_Chat"
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
-# Fourth row 
+# Fourth row
 with col1:
     st.markdown(
         gradient_div(
             "Plagiarism Checker",
             "linear-gradient(to right, #3A1C71, #D76D77)",
-            "/Plagiarism_Checker"
+            "/Plagiarism_Checker",
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col1:
     st.markdown(
         gradient_div(
-            "Writing Challenge",
+            "YouTube Summarizer",
             "linear-gradient(to right, #FF5F6D, #FFC371)",
-            "/Writing_Challenge"
+            "/Youtube_summarizer",
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col2:
@@ -200,9 +203,9 @@ with col2:
         gradient_div(
             "Image Watermark Checking",
             "linear-gradient(to right, #11998e, #38ef7d)",
-            "/Image_watermark_checking"
+            "/Image_watermark_checking",
         ),
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 # Fifth row has been removed as Document Summarizer page was deleted
@@ -212,48 +215,44 @@ st.sidebar.title("Settings")
 
 # Get all available pages
 pages = [
-    "Grammar_Check", 
-    "AI_Chat", 
+    "Grammar_Check",
+    "AI_Chat",
     "Paraphraser",
-    "Resume_Maker", 
-    "Speaking_Assistant", 
+    "Resume_Maker",
+    "Speaking_Assistant",
     "Plagiarism_Checker",
     "Image_watermark_checking",
-    "Writing_Challenge"
+    "Writing_Challenge",
 ]
 
 # API Methods section
-api_method = st.sidebar.selectbox(
-    '### API Methods',
-    ('Freemium', 'Your Own API')
-)
+api_method = st.sidebar.selectbox("### API Methods", ("Freemium", "Your Own API"))
 
-# Function to update the selected LLM in session state
-def update_llm(model_name):
-    # Convert model name to lowercase for API endpoint
-    st.session_state.selected_llm = model_name.lower()
+
+# Function to update the selected model in session state
+def update_model(model_name):
+    st.session_state.selected_model = model_name
     st.sidebar.success(f"Selected model: {model_name}")
 
 
-if api_method == 'Freemium':
-    model = st.sidebar.selectbox(
-        'Select Model',
-        ('Gemini', 'Mistral', 'DeepSeek')
-    )
-    
-    # Update the selected LLM when the model changes
+if api_method == "Freemium":
+    model = st.sidebar.selectbox("Select Model", ("Llama 3.3 70B", "Llama 3.1 8B", "Mixtral 8x7B"))
+
+    # Update the selected model when it changes
     if st.sidebar.button("Set Model"):
-        update_llm(model)
-    
-    st.sidebar.write(f"Current model: {st.session_state.selected_llm}")
+        update_model(model)
+
+    st.sidebar.write(f"Current model: {st.session_state.selected_model}")
+    st.sidebar.info("Powered by Groq AI")
 
 else:
     api_input = st.sidebar.text_input(
-        "Enter your API key", key="api_input", type="password")
-    
+        "Enter your API key", key="api_input", type="password"
+    )
+
     if st.sidebar.button("Set API Key"):
         st.sidebar.success("API Key set successfully!")
-        
+
 footer = """
 <style>
 

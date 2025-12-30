@@ -1,9 +1,25 @@
 import streamlit as st
-import requests
-import json
+import sys
+import os
+
+# Add the project root to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.services.groq_service import get_groq_service
 
 st.title("Text Paraphraser")
 st.write("Transform your text with our AI-powered paraphrasing tool")
+
+# Initialize Groq service
+@st.cache_resource
+def init_groq_service():
+    try:
+        return get_groq_service()
+    except ValueError as e:
+        st.error(f"Configuration Error: {str(e)}")
+        return None
+
+groq_service = init_groq_service()
 
 user_text = st.text_area("Enter your text here:", height=150)
 
@@ -28,25 +44,18 @@ style_descriptions = {
 # Display the description of the selected style
 st.info(style_descriptions[style])
 
-def paraphrase_text(text, style, llm="gemini"):
-    try:
-        response = requests.post(
-            f"https://langchain-grammar-check-api.onrender.com/paraphraser/{llm}/paraphrase",
-            json={"text": text, "style": style}
-        )
-        return response.json()
-    except Exception as e:
-        return {"error": str(e)}
+def paraphrase_text(text, style):
+    """Paraphrase text using Groq API directly"""
+    if groq_service is None:
+        return {"error": "Groq service not initialized. Please check your API key."}
+    
+    return groq_service.paraphrase(text, style)
 
 
 if st.button("Paraphrase Text"):
     if user_text:
         with st.spinner(f"Paraphrasing in {style} style..."):
-            # Initialize session state for LLM selection if not already done
-            if 'selected_llm' not in st.session_state:
-                st.session_state.selected_llm = 'gemini'
-
-            paraphrased = paraphrase_text(user_text, style, st.session_state.selected_llm)
+            paraphrased = paraphrase_text(user_text, style)
 
             if "error" in paraphrased:
                 st.error(f"Error: {paraphrased['error']}")
@@ -90,5 +99,5 @@ with st.expander("Tips for Better Results"):
 # Add a footer
 st.markdown("""
 ---
-*Powered by Gemini AI*
+*Powered by Groq AI*
 """)

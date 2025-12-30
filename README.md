@@ -38,7 +38,7 @@ pip install -r requirements.txt
 
 3. Run the application:
 ```bash
-streamlit run "AI Chat App.py"
+streamlit run ".py"
 ```
 
 ## Usage
